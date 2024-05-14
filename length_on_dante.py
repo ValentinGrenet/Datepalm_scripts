@@ -1,6 +1,6 @@
 fasta = "/home/valentin-grenet/Bureau/Données/Resources_yann/Final_library.fasta"
-dante = "/home/valentin-grenet/Bureau/Données/Resources_yann/DANTE_more_simplied.txt"
-output = "/home/valentin-grenet/Bureau/Données/Resources_yann/DANTE_with_length.txt"
+dante = "/home/valentin-grenet/Bureau/Données/Resources_yann/classification_more_simplied_DANTE.txt"
+output = "/home/valentin-grenet/Bureau/Données/Resources_yann/classification_with_length_DANTE.txt"
 
 dico_lines = {}
 for line in open(dante, "r"):
