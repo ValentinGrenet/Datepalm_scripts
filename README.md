@@ -1,28 +1,34 @@
 # Datepalm_scripts
 
+This repository is used to identify the abundance and the diversity of transposable elements in Phoenix dactylifera.
 
+## Initial files needed
 
-## Getting started
+The analyses needed to have :
+- a reference genome (here GCF_009389715.1_palm_55x_up_171113_PBpolish2nd_filt_p_genomic.fna);
+- libraries of consensus sequences of TEs (here initial_library.fasta or Final_library.fasta)
+- Fasta sequences of the elements used to define consensus sequences (realized with Inpactor2)
+- Classifications of transposable elements with DANTE (here DANTE_full_output.gff3)
+- TSV output files of RepeatMasker runs to identify transposable elements hits with the consensus sequences (here Repeat_LTR_all.out and Repeat_LTR_cdhit.out)
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Scripts order
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+RT_phylogeny.sh : Bash script to obtain RT sequences from the consensus, then parse them according to their lineage (Gypsy or Copia) and finally perform the phylogeny for each lineage
 
-## Add your files
+write_library.sh adn then write_library.py : python script used to write genes sequences (RT, INT, RH, etc.) for each consensus, according to DANTE output and the coordinates of each gene given from it --> initially planned to make phylogenies with all genes
+Write_Genes.py : python_script used to write individual gene files from a general gene library.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+write_RT_aa.py : used to write the amino acid sequence for the RT of each consensus
 
-```
-cd existing_repo
-git remote add origin https://gitlab.com/ValentinGrenet/Datepalm_scripts.git
-git branch -M main
-git push -uf origin main
-```
+Simple_classif_dante.sh : simplify the DANTE classification file
+length_on_dante.py : used to add the length of each consensus in the dante simplified classification file
+transform_DANTE_to_initial_lib_classif.sh : transform the dante simplified classification file to fit with fasta classifications
 
-## Integrate with your tools
+Stritt_annotate_LTR-RTs_masking.ipynb : Test script (but abandoned) to classify LTRs from blasts
 
-- [ ] [Set up project integrations](https://gitlab.com/ValentinGrenet/Datepalm_scripts/-/settings/integrations)
+Extract_LTR_for_phylogeny : usage of mafft and bedtools to extract the LTR sequences and align them (need genome and coordinates.bed, out LTR_alignment.fasta)
+Formating_nexus_files.sh : need LTR_alignment.fasta
+Repeat_annotations.ipynb : Execute the classification of each RepeatMasker hits, and then the coordinates of complete and paired LTR are obtained to make the phylogeny for each consensus
 
 ## Collaborate with your team
 
