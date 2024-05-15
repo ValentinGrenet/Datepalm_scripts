@@ -13,22 +13,17 @@ The analyses needed to have :
 
 ## Scripts order
 
+README_annotated_commands.sh : Script used previously to obtain consensus sequences from the reference genome.
+
+write_genes_sequences.py : python script used to write genes sequences (RT, INT, RH, etc.) for each consensus, according to DANTE output and the coordinates of each gene given from it --> initially planned to make phylogenies with all genes
+
 RT_phylogeny.sh : Bash script to obtain RT sequences from the consensus, then parse them according to their lineage (Gypsy or Copia) and finally perform the phylogeny for each lineage
 
-write_library.sh adn then write_library.py : python script used to write genes sequences (RT, INT, RH, etc.) for each consensus, according to DANTE output and the coordinates of each gene given from it --> initially planned to make phylogenies with all genes
-Write_Genes.py : python_script used to write individual gene files from a general gene library.
-
-write_RT_aa.py : used to write the amino acid sequence for the RT of each consensus
-
-Simple_classif_dante.sh : simplify the DANTE classification file
-length_on_dante.py : used to add the length of each consensus in the dante simplified classification file
-transform_DANTE_to_initial_lib_classif.sh : transform the dante simplified classification file to fit with fasta classifications
-
-Stritt_annotate_LTR-RTs_masking.ipynb : Test script (but abandoned) to classify LTRs from blasts
-
-Extract_LTR_for_phylogeny : usage of mafft and bedtools to extract the LTR sequences and align them (need genome and coordinates.bed, out LTR_alignment.fasta)
-Formating_nexus_files.sh : need LTR_alignment.fasta
 Repeat_annotations.ipynb : Execute the classification of each RepeatMasker hits, and then the coordinates of complete and paired LTR are obtained to make the phylogeny for each consensus
+
+Extract_LTR_for_phylogeny.sh : usage of mafft and bedtools to extract the LTR sequences and align them (need genome and coordinates.bed, out LTR_alignment.fasta). Used with Repeat_annotations.ipynb
+
+Formating_nexus_files.sh : Help to make the modifications needed for nexus files generated with Mesquite to run MrBayes on these
 
 ## Collaborate with your team
 
