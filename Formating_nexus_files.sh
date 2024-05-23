@@ -1,8 +1,8 @@
 #!/bin/bash
 
-cd /home/valentin-grenet/Bureau/Données/LTR_cdhit_sequences
+cd /home/valentin-grenet/Bureau/Données/TE_sequences
 
-for consensus in *
+for consensus in consensus*
 do
 	cd $consensus
 	sed -i '/TITLE Taxa;/d' $consensus.LTR_alignment.nex
