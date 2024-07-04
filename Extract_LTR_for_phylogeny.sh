@@ -5,9 +5,9 @@ sequences_dir="/home/valentin-grenet/Bureau/Données/TE_sequences"
 
 # Files
 LTR_consensus="5LTR.fasta"
-LTR_coordinates="LTR_coordinates.bed"
-LTR_sequences="LTR_sequences.fasta"
-LTR_alignment="LTR_alignment.fasta"
+LTR_coordinates="complete_coordinates.bed"
+LTR_sequences="complete_sequences.fasta"
+LTR_alignment="complete_alignment.fasta"
 genome_file="/home/valentin-grenet/Bureau/Données/Resources_yann/GCF_009389715.1_palm_55x_up_171113_PBpolish2nd_filt_p_genomic.fna"
 
 # Environment

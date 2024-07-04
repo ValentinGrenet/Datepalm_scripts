@@ -16,7 +16,7 @@ mamba activate tools
 for consensus in consensus*
 do
 	cd $consensus/$data_dir
-    sed -i 's/^/chr/; s/chrchr/chr/g' $consensus.TE_coordinates.bed
+    sed -i 's/^/chr/; s/chrchr/chr/g' $consensus.TE_coordinates.bed         # add chr at the beginning of each contig
 
 	sort-bed $consensus.$Coordinates_file > $consensus.$Coordinates_sorted
     bedtools closest -a $consensus.$Coordinates_sorted \

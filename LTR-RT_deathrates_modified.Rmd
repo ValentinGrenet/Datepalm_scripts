@@ -19,6 +19,9 @@ information on the age of solo LTRs, using the maximum likelihood func-
 tion of Dai et al. (2018). Confidence intervals for λS were obtained from 100
 bootstraps.
 
+```{r}
+setwd(dir = "/home/valentin-grenet/Bureau/Données/TE_sequences/")
+```
 
 ```{r, include=TRUE, eval=FALSE}
 
@@ -28,18 +31,17 @@ library(mosaic)
 # Implement the MLE approach of Dai et al. 2018, p. 1043
 deathrate <- function(y, age, lambda){
   full = y*exp(-lambda*age)
-  # solo = (1-y)*(1-exp(-lambda*age))
-  # return(solo + full)
-  return(full)
+  solo = (1-y)*(1-exp(-lambda*age))
+  return(solo + full)
 }
 l_joint <- function(lambda){
-  R <- mapply(deathrate, df$y, df$my, lambda)
+  R <- mapply(deathrate, df$y, df$estimated_age, lambda)
   -log(prod(R))
 }
 
 
 # Load table
-tg <- read.csv('/home/valentin-grenet/Bureau/Données/TE_sequences/Phoenix_dactylifera.LTR_ages.csv', header=T)
+tg <- read.table('/home/valentin-grenet/Bureau/Données/Phoenix_dactylifera.full_length_all_ages.tsv', header=T, dec=",")
 
 # Only use high-confidence annotated TEs
 # tg <- subset(tg, (cat == 'single' & tsd == 1 & ltr_context == 'solo_LTR') | 
@@ -56,70 +58,72 @@ lambda_estimates <- data.frame()
 setwd(dir = "/home/valentin-grenet/Bureau/Données/TE_sequences/")
 pwd <- getwd()
 consensi <- list.files(path = "./", pattern = "consensus")
-# include <- c('RLC_BdisC022', 'RLC_BdisC030', 'RLC_BdisC024', 
-#              'RLG_BdisC152_B', 'RLG_BdisC039', 
-#              'RLG_BdisC011', 'RLG_BdisC180', 'RLG_BdisC000', 'RLG_BdisC014')
+include <- c('consensus_Cluster_256_subfam_2', 'consensus_Cluster_226', 'consensus_Cluster_113', 'consensus_Cluster_53_subfam_2')
 
-for (te in consensi){ 
-  te = "consensus_Cluster_0"
+for (te in include){ 
   leaf_ages <- subset(tg, tg$consensus == te)
   if (nrow(leaf_ages)<10) next
-    
-  # remove rows with missing data
-  # rmv <- which(is.na(leaf_ages$age))
-  # if (length(rmv) > 0){
-  #   leaf_ages <- leaf_ages[-rmv, ]
-  # }
 
   # encode solo LTRs as 0 and FLEs as 1
   leaf_ages$y <- rep(NA, nrow(leaf_ages))
-  # leaf_ages$y[which(leaf_ages$cat=='single')] <- 0
-  leaf_ages$y[which(leaf_ages$consensus=='consensus_Cluster_0')] <- 1
-  leaf_ages$my <- leaf_ages$branch.length/0.013
+  
+  leaf_ages$y[grepl("single", leaf_ages$LTR)] <- 0
+  leaf_ages$y[grepl("solo", leaf_ages$LTR)] <- 0
+  leaf_ages$y[grepl("complete", leaf_ages$LTR)] <- 1
+  leaf_ages$y[grepl("paired", leaf_ages$LTR)] <- 1
+  leaf_ages$y[grepl("shrunked", leaf_ages$LTR)] <- 1
+  leaf_ages$y[grepl("fragmented", leaf_ages$LTR)] <- 1
+    
+  # remove rows with missing data
+  rmv <- which(is.na(leaf_ages$y))
+  if (length(rmv) > 0){
+    leaf_ages <- leaf_ages[-rmv, ]
+  }
     
   
   # First approach: fit geometric distribution to age distribution and recover death rate
-  # leaf_ages_fle <- subset(leaf_ages, cat=='paired' )
-  geom1 <- MASS::fitdistr(leaf_ages$branch.length, "geometric")
-  geom1$loglik <- sum(stats::dgeom(leaf_ages$my, geom1[["estimate"]], 
+  leaf_ages_fle <- subset(leaf_ages, y==1)
+  geom1 <- MASS::fitdistr(leaf_ages_fle$estimated_age, "geometric")
+  geom1$loglik <- sum(stats::dgeom(leaf_ages_fle$estimated_age, geom1[["estimate"]], 
                                      log = TRUE))
     
   p1 <- geom1$estimate["prob"]
   deathRate <- p1/(1 - p1) # eq.(4)?
     
-  # Second approach, including solo LTR age
-  df <- leaf_ages
-  fit <- mle(l_joint, start=list(lambda=1), method="Brent",  lower = 0.001, upper = 20)
-  leaf_ages$survival <- exp(-fit@coef*leaf_ages$my)
-    
-  # bootstrapping
-  nboot = 100
-  bootstrap <- c()
-  for (i in 1:nboot){
-    df <- leaf_ages[sample(nrow(leaf_ages), nrow(leaf_ages), replace=T), ]
-    fit <- mle(l_joint, start=list(lambda=1), method = "Brent", lower = 0.001, upper = 20)
-    bootstrap <- c(bootstrap, unname(fit@coef))
-  }
-  qtls<- qdata(bootstrap, c(0.025, 0.975))
+  # # Second approach, including solo LTR age
+  # df <- leaf_ages
+  # fit <- mle(l_joint, start=list(lambda=1), method="Brent", lower = 0.001, upper = 20)
+  # leaf_ages$survival <- exp(-fit@coef*leaf_ages$estimated_age)
+  #   
+  # # bootstrapping
+  # nboot = 100
+  # bootstrap <- c()
+  # for (i in 1:nboot){
+  #   df <- leaf_ages[sample(nrow(leaf_ages), nrow(leaf_ages), replace=T), ]
+  #   fit <- mle(l_joint, start=list(lambda=1), method = "Brent", lower = 0.001, upper = 20)
+  #   bootstrap <- c(bootstrap, unname(fit@coef))
+  # }
+  # qtls<- qdata(bootstrap, c(0.025, 0.975))
   
   # extend data frames
   age_df <- rbind(age_df, leaf_ages)
     
-  lambda_row <- data.frame('family' = te, 'lambda'=unname(deathRate),'lambdaS' = unname(fit@coef),
-                           'lower' = qtls$quantile[1], 'upper' = qtls$quantile[2])
+  # lambda_row <- data.frame('family' = te, 'lambda'=unname(deathRate),'lambdaS' = unname(fit@coef),
+                           # 'lower' = qtls[1], 'upper' = qtls[2])
+  lambda_row <- data.frame('family' = te, 'lambda'=unname(deathRate))
     
   lambda_estimates <- rbind(lambda_estimates, lambda_row)
 }
-
 
 lambda_estimates$half_life <- log(2) / lambda_estimates$lambda
 lambda_estimates$half_life_S <- log(2) / lambda_estimates$lambdaS
 lambda_estimates$half_life_CI_l_S <- log(2) / lambda_estimates$lower
 lambda_estimates$half_life_CI_u_S <- log(2) / lambda_estimates$upper
 
+write.table(lambda_estimates, file = '../Phoenix_dactylifera.complete_lambdas.tsv', row.names = FALSE, col.names = TRUE, append = TRUE, sep = "\t", dec = ".")
 
 ggplot(age_df) + 
-  geom_smooth(aes(x=age, y=survival, col=fam)) 
+  geom_smooth(aes(x=estimated_age, y=survival, col=consensus)) 
 
 
 # Plot survival functions
@@ -129,20 +133,20 @@ time = seq(0,10, 0.01)
 for (i in 1:nrow(lambda_estimates)){
   
   x <- lambda_estimates[i,]
-  prob <- exp(-x$lambdaS*time)
-  prob_ci_l <- exp(-x$lower*time)
-  prob_ci_u <- exp(-x$upper*time)
+  prob <- exp(-x$lambda*time)
+  # prob_ci_l <- exp(-x$lower*time)
+  # prob_ci_u <- exp(-x$upper*time)
 
   te <- rep(x$family, length(prob))
   acc <- rep(x$acc, length(prob))
   
-  df <- data.frame(time, te, prob, prob_ci_l, prob_ci_u)
+  df <- data.frame(time, te, prob)#, prob_ci_l, prob_ci_u)
   survival <- rbind(survival, df)
 
 }
 
 ggplot(survival,aes(x=time, y=prob, col=te))  + 
-  geom_line(size=1) +
+  geom_line(linewidth=1) +
   theme_bw(base_size=12, base_family = "Arial") +
   xlab("Time (million years)") + ylab("Survival probability")+
   scale_color_viridis_d(option='D')

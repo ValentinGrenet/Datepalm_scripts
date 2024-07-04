@@ -7,9 +7,9 @@ consensi <- list.files(path = "./", pattern = "consensus")
 ## Get trees in a hash object
 trees <- hash()         # equivalent to dictionnary
 for (consensus in consensi) {
-  wd <- paste("./", consensus, "/Repeat_TEs", sep = "")      # concatenate str
+  wd <- paste("./", consensus, "/Repeat_TEs/test_complete", sep = "")      # concatenate str
   setwd(wd)
-  treename <- paste(consensus, ".LTR_trimmed.nex.con.tre", sep = "")
+  treename <- paste(consensus, ".complete_trimmed.nex.con.tre", sep = "")
   trees[[consensus]] <- ape::read.nexus(treename)
   setwd(pwd)
 }
@@ -26,23 +26,59 @@ for (consensus in consensi) {
   ## then get the edge lengths for those nodes
   branch_lengths[[consensus]] <- setNames(tree$edge.length[sapply(nodes,
     function(x,y) which(y==x),y=tree$edge[,2])],names(nodes))
-  age_LTRs[[consensus]] <- branch_lengths[[consensus]] / 2.61E-3
+  # obtained with Gaut et al., 1996 : Substitution rate comparisons between grasses and palms
+  age_LTRs[[consensus]] <- branch_lengths[[consensus]] / 2.61E-3                # in million years
+  # age_LTRs[[consensus]] <- branch_lengths[[consensus]] / 2.61                   # in billion years
 }
 
-## Write all ages in tsv files
-final_tsv <- data.frame(consensus, lineage_table[[consensus]], family_table[[consensus]], LTR, branch_lengths[[consensus]][[LTR]], age)
-colnames(final_tsv) <- c("consensus","lineage","family","LTR","median length","mean age")
-namefile <- paste("Phoenix_dactilfera.LTR_ages.tsv", sep = "")
+## Classifications
+setwd(dir = "/home/valentin-grenet/Bureau/Données/")
+classif_tsv <- read.table("Phoenix_dactylifera.LTR_ages_median.tsv", header = TRUE)
+lineage_table <- hash()
+family_table <- hash()
+for (i in 1:nrow(classif_tsv)) {
+  line <- classif_tsv[i,]
+  print(line)
+  lineage_table[[line$consensus]] = line$lineage
+  family_table[[line$consensus]] = line$family
+}
+
+
+
+### From this point, use one single paragraph to write specific tsv files
+
+
+##  Write ages for a consensus in each consensus directory
+setwd(dir = "/home/valentin-grenet/Bureau/Données/TE_sequences")
+for (consensus in consensi) {
+  print(consensus)
+  setwd(dir = paste(consensus, "/Repeat_TEs", sep = ""))
+  final_tsv <- data.frame()
+  for (LTR in id_LTRs[[consensus]]) {
+    new_line <- data.frame(LTR, branch_lengths[[consensus]][[LTR]], age_LTRs[[consensus]][[LTR]])
+    final_tsv <- rbind(final_tsv, new_line)
+  }
+  colnames(final_tsv) <- c("LTR","branch_length", "estimated_age")
+  namefile <- paste(consensus, ".LTR_ages.tsv", sep = "")
+  write.table(final_tsv, file = namefile, row.names = FALSE, sep = "\t", dec = ",")
+  setwd("../..")
+}
+
+
+## Write ages for all consensus in a single tsv file
+setwd(dir = "/home/valentin-grenet/Bureau/Données/")
+final_tsv <- data.frame("consensus","lineage","family","LTR","branch_length","estimated_age")
+colnames(final_tsv) <- c("consensus","lineage","family","LTR","branch_length","estimated_age")
+namefile <- paste("Phoenix_dactylifera.complete_all_ages.tsv", sep = "")
 write.table(final_tsv, file = namefile, row.names = FALSE, sep = "\t", dec = ",")
 for (consensus in consensi) {
   table <- data.frame()
   print(consensus)
   for (LTR in id_LTRs[[consensus]]) {
-    age <- branch_lengths[[consensus]][[LTR]]/2.61E-3       # obtained with Gaut et al., 1996 : Substitution rate comparisons between grasses and palms
-    line <- data.frame(consensus, lineage_table[[consensus]], family_table[[consensus]], LTR, branch_lengths[[consensus]][[LTR]], age)
+    line <- data.frame(consensus, lineage_table[[consensus]], family_table[[consensus]], LTR, branch_lengths[[consensus]][[LTR]], age_LTRs[[consensus]][[LTR]])
     table <- rbind(table, line)
   }
-  write.table(table, file = namefile, row.names = FALSE, col.names = FALSE, append = TRUE,sep = "\t", dec = ",")
+  write.table(table, file = namefile, row.names = FALSE, col.names = FALSE, append = TRUE, sep = "\t", dec = ",")
 }
 
 ## Write median/mean ages in tsv files
@@ -62,30 +98,6 @@ colnames(table) <- c("consensus","median length", "mean age")
 namefile <- "Phoenix_dactylifera.LTR_ages_mean.tsv"
 write.table(final_csv, file = namefile, row.names = FALSE, sep = "\t", dec = ",")
 
-
-
-## Classifications
-setwd(dir = "/home/valentin-grenet/Bureau/Données/")
-classif_tsv <- read.table("Phoenix_dactylifera.LTR_ages_median.tsv", header = TRUE)
-lineage_table <- hash()
-family_table <- hash()
-for (i in 1:nrow(classif_tsv)) {
-  line <- classif_tsv[i,]
-  print(line)
-  lineage_table[[line$consensus]] = line$lineage
-  family_table[[line$consensus]] = line$family
-}
-final_tsv <- data.frame()
-for (consensus in consensi) {
-  for (LTR in id_LTRs[[consensus]]) {
-    new_line <- data.frame(consensus, lineage_table[[consensus]], family_table[[consensus]], 
-                           branch_lengths[[consensus]][[LTR]], age_LTRs[[consensus]][[LTR]])
-    final_tsv <- rbind(final_tsv, new_line)
-  }
-}
-colnames(final_tsv) <- c("consensus","lineage","family","branch_length", "estimated_age")
-namefile <- "Phoenix_dactylifera.LTR_all_ages.tsv"
-write.table(final_tsv, file = namefile, row.names = FALSE, sep = "\t", dec = ",")
 
 ## Write boxplot ages
 family_data <- subset(final_tsv, family == "SIRE")

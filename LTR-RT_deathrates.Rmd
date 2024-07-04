@@ -32,13 +32,14 @@ deathrate <- function(y, age, lambda){
   return(solo + full)
 }
 l_joint <- function(lambda){
+  print(lambda)
   R <- mapply(deathrate, df$y, df$my, lambda)
   -log(prod(R))
 }
 
 
 # Load table
-tg <- read.table('/home/valentin-grenet/Bureau/Données/SuppTable1.LTR-RTs.Bd21.tsv', header=T)
+tg <- read.table('/home/valentin-grenet/Bureau/Données/data_stritt/SuppTable1.LTR-RTs.Bd21.tsv', header=T)
 
 # Only use high-confidence annotated TEs
 tg <- subset(tg, (cat == 'single' & tsd == 1 & ltr_context == 'solo_LTR') | 
@@ -57,7 +58,7 @@ include <- c('RLC_BdisC022', 'RLC_BdisC030', 'RLC_BdisC024',
              'RLG_BdisC011', 'RLG_BdisC180', 'RLG_BdisC000', 'RLG_BdisC014')
 
 for (te in include){ 
-  te = "RLC_BdisC022"
+  te = 'RLC_BdisC022'
   leaf_ages <- subset(tg, tg$fam == te)
   if (nrow(leaf_ages)<10) next
     
@@ -102,7 +103,7 @@ for (te in include){
   age_df <- rbind(age_df, leaf_ages)
     
   lambda_row <- data.frame('family' = te, 'lambda'=unname(deathRate),'lambdaS' = unname(fit@coef),
-                           'lower' = qtls$quantile[1], 'upper' = qtls$quantile[2])
+                           'lower' = qtls[1], 'upper' = qtls[2])
     
   lambda_estimates <- rbind(lambda_estimates, lambda_row)
 }
