@@ -7,9 +7,9 @@ consensi <- list.files(path = "./", pattern = "consensus")
 ## Get trees in a hash object
 trees <- hash()         # equivalent to dictionnary
 for (consensus in consensi) {
-  wd <- paste("./", consensus, "/Repeat_TEs/test_complete", sep = "")      # concatenate str
+  wd <- paste("./", consensus, "/Repeat_TEs/test_all", sep = "")      # concatenate str
   setwd(wd)
-  treename <- paste(consensus, ".complete_trimmed.nex.con.tre", sep = "")
+  treename <- paste(consensus, ".all_trimmed.nex.con.tre", sep = "")
   trees[[consensus]] <- ape::read.nexus(treename)
   setwd(pwd)
 }
@@ -32,17 +32,7 @@ for (consensus in consensi) {
 }
 
 ## Classifications
-setwd(dir = "/home/valentin-grenet/Bureau/Données/")
-classif_tsv <- read.table("Phoenix_dactylifera.LTR_ages_median.tsv", header = TRUE)
-lineage_table <- hash()
-family_table <- hash()
-for (i in 1:nrow(classif_tsv)) {
-  line <- classif_tsv[i,]
-  print(line)
-  lineage_table[[line$consensus]] = line$lineage
-  family_table[[line$consensus]] = line$family
-}
-
+classif_tsv <- read.table("/home/valentin-grenet/Bureau/Données/Resources_yann/Classification.tsv", header = TRUE)
 
 
 ### From this point, use one single paragraph to write specific tsv files
@@ -52,16 +42,16 @@ for (i in 1:nrow(classif_tsv)) {
 setwd(dir = "/home/valentin-grenet/Bureau/Données/TE_sequences")
 for (consensus in consensi) {
   print(consensus)
-  setwd(dir = paste(consensus, "/Repeat_TEs", sep = ""))
-  final_tsv <- data.frame()
+  setwd(dir = paste(consensus, "/Repeat_TEs/test_all", sep = ""))
+  table <- data.frame()
   for (LTR in id_LTRs[[consensus]]) {
-    new_line <- data.frame(LTR, branch_lengths[[consensus]][[LTR]], age_LTRs[[consensus]][[LTR]])
-    final_tsv <- rbind(final_tsv, new_line)
+    line <- data.frame(LTR, branch_lengths[[consensus]][[LTR]], age_LTRs[[consensus]][[LTR]])
+    table <- rbind(table, line)
   }
-  colnames(final_tsv) <- c("LTR","branch_length", "estimated_age")
-  namefile <- paste(consensus, ".LTR_ages.tsv", sep = "")
-  write.table(final_tsv, file = namefile, row.names = FALSE, sep = "\t", dec = ",")
-  setwd("../..")
+  colnames(table) <- c("LTR","branch_length", "estimated_age")
+  namefile <- paste(consensus, ".all_ages.tsv", sep = "")
+  write.table(table, file = namefile, row.names = FALSE, sep = "\t", dec = ",")
+  setwd("../../..")
 }
 
 
@@ -151,3 +141,10 @@ ggplot(family_stats, aes(x = reorder(family, count), y = proportion_below_1, fil
   ) +
   theme(legend.position = "top") +
   guides(fill = "none")
+
+ggplot(survival,aes(x=time, y=prob, col=te))  + 
+  geom_line(size=1) +
+  xlim(0,10) +
+  theme_bw(base_size=12, base_family = "Arial") +
+  xlab("Time (million years)") + ylab("Survival probability")+
+  scale_color_viridis_d(option='D')

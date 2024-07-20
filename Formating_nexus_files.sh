@@ -3,12 +3,12 @@
 
 cd /home/valentin-grenet/Bureau/Données/TE_sequences
 
-fasta_file="complete_trimmed.fasta"
-nexus_file="complete_trimmed.nex"
+fasta_file="all_trimmed.fasta"
+nexus_file="all_trimmed.nex"
 
 for consensus in consensus*
 do
-	cd $consensus/Repeat_TEs/test_complete
+	cd $consensus/Repeat_TEs/test_all
 
 	mamba activate tools
 	seqmagick convert --output-format nexus --alphabet dna \

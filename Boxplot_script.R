@@ -3,7 +3,7 @@ library(ggplot2)
 library(dplyr)
 
 # Read the data
-setwd(dir = "/home/valentin-grenet/Bureau/Résultats/Insertion_ages/")
+setwd(dir = "/home/valentin-grenet/Bureau/Données/")
 pwd <- getwd()
 consensi <- list.files(path = "./", pattern = "consensus")
 data <- read.csv("Phoenix_dactylifera.LTR_all_ages.tsv", sep="\t")
