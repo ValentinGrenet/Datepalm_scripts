@@ -33,7 +33,14 @@ for (consensus in consensi) {
 
 ## Classifications
 classif_tsv <- read.table("/home/valentin-grenet/Bureau/Données/Resources_yann/Classification.tsv", header = TRUE)
-
+superfamily_table <- hash()
+family_table <- hash()
+for (i in 1:nrow(classif_tsv)) {
+  line <- classif_tsv[i,]
+  print(line)
+  superfamily_table[[line$consensus]] = line$superfamily
+  family_table[[line$consensus]] = line$family
+}
 
 ### From this point, use one single paragraph to write specific tsv files
 
@@ -57,16 +64,18 @@ for (consensus in consensi) {
 
 ## Write ages for all consensus in a single tsv file
 setwd(dir = "/home/valentin-grenet/Bureau/Données/")
-final_tsv <- data.frame("consensus","lineage","family","LTR","branch_length","estimated_age")
-colnames(final_tsv) <- c("consensus","lineage","family","LTR","branch_length","estimated_age")
-namefile <- paste("Phoenix_dactylifera.complete_all_ages.tsv", sep = "")
+final_tsv <- data.frame("consensus","superfamily","family","LTR","branch_length","estimated_age")
+colnames(final_tsv) <- c("consensus","superfamily","family","LTR","branch_length","estimated_age")
+namefile <- paste("Phoenix_dactylifera.all_ages.tsv", sep = "")
 write.table(final_tsv, file = namefile, row.names = FALSE, sep = "\t", dec = ",")
 for (consensus in consensi) {
   table <- data.frame()
   print(consensus)
   for (LTR in id_LTRs[[consensus]]) {
-    line <- data.frame(consensus, lineage_table[[consensus]], family_table[[consensus]], LTR, branch_lengths[[consensus]][[LTR]], age_LTRs[[consensus]][[LTR]])
-    table <- rbind(table, line)
+    if (age_LTRs[[consensus]][[LTR]] < 100) {
+      line <- data.frame(consensus, superfamily_table[[consensus]], family_table[[consensus]], LTR, branch_lengths[[consensus]][[LTR]], age_LTRs[[consensus]][[LTR]])
+      table <- rbind(table, line)
+    }
   }
   write.table(table, file = namefile, row.names = FALSE, col.names = FALSE, append = TRUE, sep = "\t", dec = ",")
 }
